@@ -1,8 +1,8 @@
 # File:      ppgen.py
 # Author:    Bruce Belson
 # Copyright: See LICENSE in this repository
-# Version:   1.1
-# Date:      26-Jul-2021
+# Version:   1.2
+# Date:      16-Feb-2024
 
 # Notes:
 # templates are stored in [exedir]/templates
@@ -10,7 +10,7 @@
 # $ symbols in templates must be escaped: $$
 # Each file in the template list may be copied or templated
 # Template list:
-# [ template-file, destination-folder, destonation-file, is_copied ] 
+# [ template-file, destination-folder, destination-file, is_copied ] 
 
 from string import Template
 from pathlib import Path
@@ -18,6 +18,7 @@ from datetime import date
 import getpass
 import argparse
 from sys import version_info
+from os import environ
 
 # Generate a single file from template and dictionary of substitutions
 def gen_file(in_path, out_path, dict, is_copied, verbose):
@@ -69,6 +70,9 @@ def main(proj_name, libs, debug_type, verbose):
   exedir = Path(__file__).parent
   pwdir = Path.cwd()
   tpldir = exedir / 'templates'
+  sdk_ver = environ.get('PICO_SDK_VERSION')
+  if sdk_ver is None:
+    sdk_ver = "old"
 
   (liblist, includes) = expand_library_list(libs)
 
@@ -86,7 +90,7 @@ def main(proj_name, libs, debug_type, verbose):
     ['.gitignore', '.', '.gitignore', True]
   ]
   picoprobe_templates = [
-    ['picoprobe_launch.json', '.vscode', 'launch.json', False]
+    ['picoprobe_launch.json' if sdk_ver == 'old' else 'picoprobe_launch2.json', '.vscode', 'launch.json', False]
   ]
   # Append debug material to templates
   if debug_type == 'picoprobe':
@@ -97,7 +101,7 @@ def main(proj_name, libs, debug_type, verbose):
 
 def read_args():
   # Process cmd line switches
-  pp_version_info = "1.1"
+  pp_version_info = "1.2"
   ppgen_desc = f"Pico Project Generator. Version {pp_version_info}." 
   parser = argparse.ArgumentParser(description=ppgen_desc)
   parser.add_argument("project",help="name of project and of new folder containing project")
